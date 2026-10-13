@@ -1,0 +1,34 @@
+# MaxBoom Shop
+DirectoryIndex index.php
+AddDefaultCharset UTF-8
+
+# Закрываем служебные папки и файлы
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^(inc|data)(/|$) - [F,L]
+# Красивые адреса: /p/123-nazvanie, /c/45-kategoriya, sitemap.xml, robots.txt
+RewriteRule ^p/(\d+)(-[^/]*)?/?$ product.php?id=$1 [L,QSA]
+RewriteRule ^c/(\d+)(-[^/]*)?/?$ index.php?cat=$1 [L,QSA]
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+RewriteRule ^robots\.txt$ robots.php [L]
+</IfModule>
+<FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|lock|log)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml application/xml text/plain
+</IfModule>
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType text/css "access plus 30 days"
+  ExpiresByType application/javascript "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+</IfModule>
