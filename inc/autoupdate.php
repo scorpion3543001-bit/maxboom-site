@@ -78,7 +78,7 @@ function site_autoupdate(bool $force = false): string
     @unlink($tmp);
     if (!str_starts_with($res, 'ok:')) return 'Автообновление: ' . $res;
     setting_set('update_sha', $sha);
-    setting_set('update_last', now() . ' · ' . substr($sha, 0, 7) . ' · ' . mb_substr(trim((string)($d['commit']['message'] ?? '')), 0, 120));
+    setting_set('update_last', now() . ' · ' . substr($sha, 0, 7) . ' · ' . mb_substr(trim(strtok((string)($d['commit']['message'] ?? ''), "\n") ?: ''), 0, 120));
     page_cache_clear();
     try { db()->exec('DELETE FROM kv_cache'); } catch (Throwable $e) {}
     return 'Сайт обновлён из GitHub: ' . substr($res, 3);
