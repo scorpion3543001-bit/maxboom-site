@@ -32,6 +32,10 @@ function page_head(string $title, string $active = '', array $meta = []): void
 <?php endif; ?>
 <?php if (!empty($meta['canonical'])): ?><link rel="canonical" href="<?= e($meta['canonical']) ?>">
 <?php endif; ?>
+<?php if (setting('google_verify') !== ''): ?><meta name="google-site-verification" content="<?= e(setting('google_verify')) ?>">
+<?php endif; ?>
+<?php if (setting('yandex_verify') !== ''): ?><meta name="yandex-verification" content="<?= e(setting('yandex_verify')) ?>">
+<?php endif; ?>
 <meta property="og:type" content="<?= !empty($meta['jsonld_product']) ? 'product' : 'website' ?>">
 <meta property="og:site_name" content="<?= e($shop) ?>">
 <meta property="og:title" content="<?= e($title) ?>">
@@ -195,7 +199,7 @@ function page_foot(): void
       </div>
     </div>
   </div>
-  <div class="wrap footer-bottom muted">© <?= date('Y') ?> <?= e($shop) ?></div>
+  <div class="wrap footer-bottom muted">© <?= date('Y') ?> <?= e($shop) ?><?php if (setting('shop_alt_name') !== ''): ?> (<?= e(setting('shop_alt_name')) ?>)<?php endif; ?></div>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="assets/app.js?v=<?= MB_VERSION ?>"></script>

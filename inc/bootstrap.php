@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-const MB_VERSION = '1.007';
+const MB_VERSION = '1.008';
 define('MB_ROOT', dirname(__DIR__));
 define('MB_DATA', MB_ROOT . '/data');
 
@@ -319,6 +319,9 @@ const MB_DEFAULTS = [
     'metrika_id'         => '',
     'img_resize'         => '1',
     'page_cache'         => '1',
+    'shop_alt_name'      => 'Максбум',
+    'google_verify'      => '',
+    'yandex_verify'      => '',
 ];
 
 function setting(string $key): string

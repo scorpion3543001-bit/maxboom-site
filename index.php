@@ -21,17 +21,24 @@ $isHome = $q === '' && $cat === 0 && $page === 1;
 $cats = categories_visible();
 
 $title = $colTitle !== '' ? $colTitle . ' — ' . setting('shop_name') : ($q !== '' ? "Поиск «{$q}» — " . setting('shop_name')
-       : ($catTitle !== '' ? $catTitle . ' — купить в интернет-магазине ' . setting('shop_name') : (setting('seo_title') ?: setting('shop_name') . ' — ' . setting('shop_tagline'))));
+       : ($catTitle !== '' ? $catTitle . ' — купить в интернет-магазине ' . setting('shop_name') : (setting('seo_title') ?: setting('shop_name') . (setting('shop_alt_name') !== '' ? ' (' . setting('shop_alt_name') . ')' : '') . ' — ' . setting('shop_tagline'))));
 $meta = ['noindex' => ($q !== '' && $colKey === '') || $page > 1 || isset($_GET['sort'])];
 if ($cat && $catTitle !== '') {
     $meta['canonical'] = abs_url(category_url($cat, $catTitle));
     $meta['description'] = $catTitle . ': ' . $total . ' ' . plural($total, 'товар', 'товара', 'товаров') . ' собственного производства из безопасного кукурузного пластика. Доставка СДЭК, Ozon, Почтой России.';
 } elseif ($isHome) {
     $meta['canonical'] = abs_url('');
+    $alt = setting('shop_alt_name');
+    $names = $alt !== '' ? [$alt, 'MaxBoom Shop'] : ['MaxBoom Shop'];
+    $sameAs = array_values(array_filter([setting('link_ozon_store'), setting('link_wb_store'), setting('link_ym_store')]));
+    if (setting('seo_description') === '') {
+        $meta['description'] = setting('shop_name') . ($alt !== '' ? ' (' . $alt . ')' : '') . ' — собственное производство из безопасного кукурузного пластика: брелоки, фигурки, кашпо, органайзеры и подарки. Доставка СДЭК, Ozon, Почтой России.';
+    }
     $meta['jsonld'] = [
-        ['@context' => 'https://schema.org', '@type' => 'WebSite', 'name' => setting('shop_name'), 'url' => abs_url(''),
-         'potentialAction' => ['@type' => 'SearchAction', 'target' => abs_url('') . '?q={search_term_string}', 'query-input' => 'required name=search_term_string']],
-        ['@context' => 'https://schema.org', '@type' => 'Organization', 'name' => setting('shop_name'), 'url' => abs_url(''), 'logo' => abs_url('assets/favicon.svg')]
+        ['@context' => 'https://schema.org', '@type' => 'WebSite', 'name' => setting('shop_name'), 'alternateName' => $names, 'url' => abs_url(''),
+         'inLanguage' => 'ru', 'potentialAction' => ['@type' => 'SearchAction', 'target' => abs_url('') . '?q={search_term_string}', 'query-input' => 'required name=search_term_string']],
+        ['@context' => 'https://schema.org', '@type' => 'Organization', 'name' => setting('shop_name'), 'alternateName' => $names, 'url' => abs_url(''),
+         'logo' => abs_url('assets/favicon.svg'), 'sameAs' => $sameAs]
             + (setting('phone') ? ['telephone' => setting('phone')] : []),
     ];
 }
@@ -51,6 +58,7 @@ $icons = [
 <?php if ($isHome): ?>
 <?php $slides = banners(); $arrow = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'; ?>
 <section class="hero" aria-label="Подборки товаров" aria-roledescription="карусель">
+  <h1 class="sr-only"><?= e(setting('shop_name')) ?><?php if (setting('shop_alt_name') !== ''): ?> (<?= e(setting('shop_alt_name')) ?>)<?php endif; ?> — собственное производство из безопасного кукурузного пластика</h1>
   <div class="bn" id="bn" data-dur="6000">
     <?php foreach ($slides as $i => $b):
       $imgs = $b['image'] ? [$b['image']] : (is_array($b['images']) ? $b['images'] : banner_images((int)$b['cat'], 3, (string)$b['q']));
@@ -63,7 +71,7 @@ $icons = [
       <span class="bn-blob" aria-hidden="true"></span>
       <span class="bn-text">
         <?php if ($b['kicker']): ?><span class="bn-kicker"><?= e($b['kicker']) ?></span><?php endif; ?>
-        <?php if ($i === 0): ?><h1 class="bn-title"><?= e($b['title']) ?></h1><?php else: ?><h2 class="bn-title"><?= e($b['title']) ?></h2><?php endif; ?>
+        <h2 class="bn-title"><?= e($b['title']) ?></h2>
         <?php if ($b['text']): ?><span class="bn-desc"><?= e($b['text']) ?></span><?php endif; ?>
         <span class="bn-cta"><?= e($b['btn'] ?: 'Смотреть') ?><?= $arrow ?></span>
       </span>

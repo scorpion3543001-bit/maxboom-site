@@ -12,6 +12,10 @@ foreach (categories_visible() as $c) echo $u($base . category_url((int)$c['id'],
 foreach (db()->query('SELECT id, name, updated_at FROM products WHERE ' . visible_where() . ' ORDER BY id') as $p) {
     echo $u($base . product_url($p), substr((string)$p['updated_at'], 0, 10));
 }
+foreach (collections_live(50) as $c) {
+    if (empty($c['key'])) continue;
+    echo $u($base . '?col=' . rawurlencode((string)$c['key']), date('Y-m-d'), '0.7');
+}
 if (gift_on()) echo $u($base . 'gift.php', '', '0.5');
 echo $u($base . 'delivery.php', '', '0.4');
 echo '</urlset>';

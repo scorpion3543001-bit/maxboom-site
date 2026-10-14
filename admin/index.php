@@ -1195,7 +1195,10 @@ function page_settings(bool $saved): void
       <section class="panel"><h2>SEO, аналитика и скорость</h2>
         <div class="grid2">
           <?php fld('seo_title', 'Заголовок главной для поиска', 'пусто — «Название — подзаголовок»'); fld('seo_description', 'Описание сайта для поиска', 'до 200 символов');
-          fld('metrika_id', 'Номер счётчика Яндекс Метрики', 'цифры, например 98765432'); ?>
+          fld('metrika_id', 'Номер счётчика Яндекс Метрики', 'цифры, например 98765432');
+          fld('shop_alt_name', 'Второе название магазина', 'в заголовке, футере и данных для поиска, по умолчанию Максбум');
+          fld('google_verify', 'Код подтверждения Google', 'content из meta-тега google-site-verification');
+          fld('yandex_verify', 'Код подтверждения Яндекс Вебмастера', 'content из meta-тега yandex-verification'); ?>
         </div>
         <?php chk('pretty_urls', 'Красивые адреса страниц (/p/123-nazvanie)'); chk('img_resize', 'Уменьшенные фото с CDN Ozon (страницы грузятся быстрее)'); chk('page_cache', 'Кэшировать страницы для гостей на 2 минуты'); chk('ozon_reviews_import', 'Загружать отзывы 4★ и 5★ с Ozon раз в сутки'); ?>
         <p class="muted tiny">Карта сайта: <a class="link" href="../sitemap.xml" target="_blank"><?= e(base_url()) ?>/sitemap.xml</a> — добавьте её в Яндекс Вебмастер и Google Search Console. В Метрике цели: <code>cart</code> (в корзину), <code>checkout</code> (оформление), <code>order</code> (заказ), <code>fav</code> (избранное); электронная коммерция включена.</p>
