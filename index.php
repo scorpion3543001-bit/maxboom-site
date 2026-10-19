@@ -233,9 +233,11 @@ foreach (array_slice(array_values(array_filter($cats, fn($c) => (int)$c['cnt'] >
   <?php endif; ?>
 </section>
 <?php if ($catTitle !== '' && $page === 1 && $q === ''): ?>
-<section class="wrap seo-text"><p><?= nl2br(e(category_seo_text($cat, $catTitle, $total))) ?></p></section>
+<section class="wrap seo-text"><?= category_seo_text($cat, $catTitle, $total) ?></section>
 <?php elseif ($colKey !== '' && $page === 1): ?>
-<section class="wrap seo-text"><p><?= e($colTitle) ?> — подборка из <?= $total ?> <?= plural($total, 'товара', 'товаров', 'товаров') ?> MaxBoom. <?= e((string)($cd['text'] ?? '')) ?> Всё напечатано на собственном производстве из материала: <?= e(setting('seo_material')) ?>. Доставка СДЭК, Почтой России и Ozon по всей России<?= (float)setting('free_delivery_from') > 0 ? ', бесплатно от ' . money((float)setting('free_delivery_from')) : '' ?>.</p></section>
+<section class="wrap seo-text"><p><?= e($colTitle) ?> — подборка из <?= $total ?> <?= plural($total, 'товара', 'товаров', 'товаров') ?> MaxBoom. <?= e((string)($cd['text'] ?? '')) ?> Всё напечатано на собственном производстве из материала: <?= e(setting('seo_material')) ?>.</p>
+<?php foreach (seo_paragraphs_from_products($items, 4) as $pp): ?><p><a href="<?= e($pp['url']) ?>"><?= e($pp['name']) ?></a> — <?= e($pp['text']) ?></p><?php endforeach; ?>
+<p>Доставка СДЭК, Почтой России и Ozon по всей России<?= (float)setting('free_delivery_from') > 0 ? ', бесплатно от ' . money((float)setting('free_delivery_from')) : '' ?>.</p></section>
 <?php elseif ($isHome): ?>
 <section class="wrap about" id="about">
   <h2>О производстве MaxBoom</h2>

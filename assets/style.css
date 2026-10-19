@@ -917,3 +917,4 @@ button.link{background:none;border:0;padding:0;color:var(--accent);font-weight:7
 .faq p{margin:10px 0 0 20px;color:#b9c9da;line-height:1.7}
 .specs{margin-top:28px}.specs h2{font:700 22px var(--head);margin:0 0 12px}
 @media (max-width:700px){.about-grid{grid-template-columns:1fr}}
+.seo-text p{margin:0 0 12px}.seo-text a{color:var(--accent);font-weight:600}

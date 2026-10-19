@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-const MB_VERSION = '1.014';
+const MB_VERSION = '1.015';
 define('MB_ROOT', dirname(__DIR__));
 define('MB_DATA', MB_ROOT . '/data');
 
@@ -647,18 +647,45 @@ function categories_visible(): array
     return db()->query($sql)->fetchAll();
 }
 
-/** Текст для страницы категории: свой из админки или автоматический. */
+/** Абзацы для SEO-текста из описаний товаров (берём только уже загруженные описания, без запросов к Ozon). */
+function seo_paragraphs_from_products(array $items, int $max = 4): array
+{
+    $out = []; $seen = [];
+    foreach ($items as $p) {
+        $d = trim((string)($p['description'] ?? ''));
+        if ($d === '') continue;
+        $d = clean_description($d);
+        $d = trim((string)preg_replace('/\s+/u', ' ', $d));
+        if (mb_strlen($d) < 60) continue;
+        $key = mb_substr($d, 0, 80);
+        if (isset($seen[$key])) continue;
+        $seen[$key] = 1;
+        // первые 2–3 предложения, не длиннее ~380 символов
+        $parts = preg_split('/(?<=[.!?…])\s+/u', $d);
+        $txt = '';
+        foreach ($parts as $s) { if (mb_strlen($txt . ' ' . $s) > 380 && $txt !== '') break; $txt .= ($txt === '' ? '' : ' ') . $s; }
+        $out[] = ['name' => (string)$p['name'], 'url' => product_url($p), 'text' => $txt];
+        if (count($out) >= $max) break;
+    }
+    return $out;
+}
+
+/** Текст для страницы категории: свой из админки или собранный из описаний товаров. */
 function category_seo_text(int $id, string $title, int $total): string
 {
     $st = db()->prepare('SELECT seo_text FROM categories WHERE id = ?');
     $st->execute([$id]);
     $own = trim((string)$st->fetchColumn());
-    if ($own !== '') return $own;
+    if ($own !== '') return '<p>' . nl2br(e($own)) . '</p>';
     $n = $total . ' ' . plural($total, 'товар', 'товара', 'товаров');
     $free = (float)setting('free_delivery_from');
-    return "{$title} от MaxBoom — {$n} собственного производства. Печатаем на 3D-принтерах из материала: " . setting('seo_material') . ". "
-         . "Каждое изделие можно заказать в разных цветах. Доставка по всей России: СДЭК, Почта России, Ozon" . ($free > 0 ? ', бесплатно от ' . money($free) : '') . ". "
-         . "Те же товары есть на Ozon, Wildberries и Яндекс Маркете, но на сайте дешевле.";
+    $st = db()->prepare("SELECT id, name, description FROM products WHERE type_id = ? AND description IS NOT NULL AND description <> '' AND " . visible_where() . ' ORDER BY sort, id LIMIT 12');
+    $st->execute([$id]);
+    $paras = seo_paragraphs_from_products($st->fetchAll(), 4);
+    $html = '<p>' . e("{$title} от MaxBoom — {$n} собственного производства из материала: " . setting('seo_material') . '.') . '</p>';
+    foreach ($paras as $pp) $html .= '<p><a href="' . e($pp['url']) . '">' . e($pp['name']) . '</a> — ' . e($pp['text']) . '</p>';
+    $html .= '<p>' . e('Доставка по всей России: СДЭК, Почта России, Ozon' . ($free > 0 ? ', бесплатно от ' . money($free) : '') . '. Те же товары есть на Ozon, Wildberries и Яндекс Маркете, но на сайте дешевле.') . '</p>';
+    return $html;
 }
 
 function category_title(int $id): string

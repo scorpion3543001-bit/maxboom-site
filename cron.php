@@ -24,6 +24,12 @@ try {
     echo 'Ошибка: ', $e->getMessage(), "\n";
 }
 flock($lock, LOCK_UN);
+// Подгружаем описания товаров с Ozon пачками — они нужны для SEO-текстов категорий
+try {
+    $st = db()->query('SELECT * FROM products WHERE description IS NULL AND archived = 0 ORDER BY id LIMIT 150');
+    $nd = 0; foreach ($st->fetchAll() as $p) { if (ozon_description($p) !== '') $nd++; }
+    if ($nd) { page_cache_clear(); echo "Описаний загружено: {$nd}\n"; }
+} catch (Throwable $e) {}
 // IndexNow: один раз отправляем все страницы, дальше — только изменённые (в ozon_sync)
 if (setting('indexnow_full') !== '1' && setting('indexnow_key') !== '') {
     try {
