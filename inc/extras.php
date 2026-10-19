@@ -683,3 +683,45 @@ function notify_customer(array $o, string $event): void
         send_mail((string)$o['email'], $subj . ' — ' . $shop, $text);
     }
 }
+
+/** Вопросы-ответы для главной (видимый блок + разметка FAQPage). */
+function home_faq(): array
+{
+    $free = (float)setting('free_delivery_from');
+    $phone = setting('phone');
+    return [
+        ['Из чего сделаны товары MaxBoom?', 'Из кукурузного пластика PLA — биоразлагаемого материала растительного происхождения. Он не имеет запаха, не выделяет вредных веществ и безопасен для детей и домашних животных. Изделия печатаются на 3D-принтерах на нашем производстве в Москве.'],
+        ['Почему на сайте дешевле, чем на Ozon и Wildberries?', 'На сайте вы покупаете напрямую у производителя, без комиссии маркетплейсов. Поэтому цена на сайте ниже, чем на Ozon, Wildberries и Яндекс Маркете, а товар тот же.'],
+        ['Как доставляете и сколько это стоит?', 'Отправляем по всей России: СДЭК до пункта выдачи, Почтой России и Ozon Доставкой. Стоимость рассчитывается в корзине' . ($free > 0 ? ', при заказе от ' . money($free) . ' доставка бесплатная' : '') . '. Из Москвы заказ можно забрать самовывозом.'],
+        ['Можно ли выбрать цвет?', 'Да. Большинство моделей печатаем в нескольких цветах — выбор цвета есть прямо в карточке товара. Если нужного цвета нет, напишите нам' . ($phone ? ' по телефону ' . $phone : '') . ' — напечатаем под заказ.'],
+        ['Как оплатить заказ?', 'Банковской картой или через СБП на сайте, чек придёт на e-mail. При самовывозе можно оплатить при получении.'],
+    ];
+}
+
+/** IndexNow: сообщаем Яндексу и Bing об изменённых адресах (до 10 000 за раз). */
+function indexnow_submit(array $urls): int
+{
+    $key = setting('indexnow_key');
+    $urls = array_values(array_unique(array_filter($urls)));
+    if ($key === '' || !$urls) return 0;
+    $host = parse_url(base_url(), PHP_URL_HOST) ?: '';
+    if ($host === '' || str_contains($host, 'localhost') || str_starts_with($host, '127.')) return 0;
+    $body = ['host' => $host, 'key' => $key, 'keyLocation' => rtrim(base_url(), '/') . '/' . $key . '.txt', 'urlList' => array_slice($urls, 0, 10000)];
+    $n = 0;
+    foreach (['https://yandex.com/indexnow', 'https://api.indexnow.org/indexnow'] as $ep) {
+        $r = http_json('POST', $ep, ['Content-Type: application/json; charset=utf-8'], $body, 15);
+        if (!empty($r['ok']) || in_array((int)($r['code'] ?? 0), [200, 202], true)) $n++;
+    }
+    return $n;
+}
+
+/** Адреса всех видимых товаров, изменённых после $since (для IndexNow). */
+function indexnow_changed_since(string $since): array
+{
+    $base = rtrim(base_url(), '/') . '/';
+    $st = db()->prepare('SELECT id, name FROM products WHERE ' . visible_where() . ' AND updated_at > ? ORDER BY updated_at DESC LIMIT 2000');
+    $st->execute([$since]);
+    $out = [$base, $base . 'sitemap.xml'];
+    foreach ($st->fetchAll() as $p) $out[] = $base . product_url($p);
+    return $out;
+}

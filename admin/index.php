@@ -197,6 +197,7 @@ if ($p === 'api') {
             elseif ($field === 'hidden') $pdo->prepare('UPDATE categories SET hidden = ? WHERE id = ?')->execute([$val === '1' ? 1 : 0, $id]);
             elseif ($field === 'sort') $pdo->prepare('UPDATE categories SET sort = ? WHERE id = ?')->execute([(int)$val, $id]);
             elseif ($field === 'off_sale') $pdo->prepare('UPDATE categories SET off_sale = ? WHERE id = ?')->execute([$val === '1' ? 1 : 0, $id]);
+            elseif ($field === 'seo_text') $pdo->prepare('UPDATE categories SET seo_text = ? WHERE id = ?')->execute([mb_substr($val, 0, 2000), $id]);
             else json_out(['error' => 'поле?'], 400);
             page_cache_clear();
             $pdo->exec("DELETE FROM kv_cache WHERE key LIKE 'collections_%'");
@@ -381,7 +382,7 @@ if ($p === 'settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                    'bonus_enabled', 'ref_enabled', 'gift_enabled', 'cdek_api', 'cdek_test', 'post_api', 'tg_customers', 'notify_customer_email', 'ozon_reviews_import',
                    'sale_on', 'pretty_urls', 'img_resize', 'page_cache'];
     $secret = ['ozon_api_key', 'yk_secret', 'wb_token', 'tg_bot_token', 'cdek_client_secret'];
-    $internal = ['tg_bot_username', 'tg_offset', 'tg_secret', 'ozon_reviews_last', 'sale_cats', 'update_sha', 'update_last', 'update_last_check', 'update_repo', 'update_branch', 'update_token', 'update_auto'];
+    $internal = ['tg_bot_username', 'tg_offset', 'tg_secret', 'ozon_reviews_last', 'sale_cats', 'update_sha', 'update_last', 'update_last_check', 'update_repo', 'update_branch', 'update_token', 'update_auto', 'indexnow_key', 'site_url'];
     foreach (MB_DEFAULTS as $k => $def) {
         if (in_array($k, ['admin_password', 'cron_key'], true) || in_array($k, $internal, true)) continue;
         if (in_array($k, $checkboxes, true)) { setting_set($k, isset($_POST[$k]) ? '1' : '0'); continue; }
@@ -572,7 +573,7 @@ function page_categories(): void
     <p class="muted"><b>В продаже</b> — выключите, и все товары категории исчезнут с сайта: их не будет в каталоге, поиске и баннерах, а купить их нельзя (даже если товар уже лежит в корзине). <b>В меню</b> — только убирает категорию из списка слева, товары остаются в продаже.</p>
     <div class="table-wrap">
     <table class="tbl" id="catTable">
-      <thead><tr><th>Категория Ozon</th><th>Название на сайте</th><th class="r">Товаров</th><th>Порядок</th><th>В продаже</th><th>В меню</th></tr></thead>
+      <thead><tr><th>Категория Ozon</th><th>Название на сайте</th><th class="r">Товаров</th><th>Порядок</th><th>В продаже</th><th>В меню</th><th>SEO-текст</th></tr></thead>
       <tbody>
       <?php foreach ($rows as $c): ?>
         <tr data-id="<?= (int)$c['id'] ?>" class="<?= $c['hidden'] ? 'is-hidden' : '' ?><?= !empty($c['off_sale']) ? ' is-off' : '' ?>">
@@ -582,9 +583,10 @@ function page_categories(): void
           <td><input class="cell" data-field="sort" value="<?= (int)$c['sort'] ?>" inputmode="numeric" style="width:80px;min-width:0"></td>
           <td><label class="switch switch-sale" title="Продавать товары этой категории"><input type="checkbox" data-field="off_sale" <?= !empty($c['off_sale']) ? '' : 'checked' ?>><span></span></label></td>
           <td><label class="switch" title="Показывать в меню категорий"><input type="checkbox" data-field="hidden" <?= $c['hidden'] ? '' : 'checked' ?>><span></span></label></td>
+          <td><textarea class="cell" data-field="seo_text" rows="2" placeholder="пусто — автотекст" style="min-width:220px"><?= e((string)($c['seo_text'] ?? '')) ?></textarea></td>
         </tr>
       <?php endforeach; ?>
-      <?php if (!$rows): ?><tr><td colspan="6" class="empty">Категорий пока нет — нажмите «Обновить сейчас» на странице «Обзор».</td></tr><?php endif; ?>
+      <?php if (!$rows): ?><tr><td colspan="7" class="empty">Категорий пока нет — нажмите «Обновить сейчас» на странице «Обзор».</td></tr><?php endif; ?>
       </tbody>
     </table>
     </div>
@@ -1198,6 +1200,8 @@ function page_settings(bool $saved): void
           <?php fld('seo_title', 'Заголовок главной для поиска', 'пусто — «Название — подзаголовок»'); fld('seo_description', 'Описание сайта для поиска', 'до 200 символов');
           fld('metrika_id', 'Номер счётчика Яндекс Метрики', 'цифры, например 98765432');
           fld('shop_alt_name', 'Второе название магазина', 'в заголовке, футере и данных для поиска, по умолчанию Максбум');
+          fld('seo_material', 'Материал (для характеристик и фида)', 'показывается на каждом товаре');
+          fld('indexnow_key', 'Ключ IndexNow', 'создаётся сам, менять не нужно; адрес фида для Яндекс Вебмастера: /yml.xml', 'text', ['readonly' => 'readonly']);
           fld('google_verify', 'Код подтверждения Google', 'content из meta-тега google-site-verification');
           fld('yandex_verify', 'Код подтверждения Яндекс Вебмастера', 'content из meta-тега yandex-verification'); ?>
         </div>

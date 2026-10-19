@@ -189,6 +189,9 @@ function ozon_sync(): string
         try { $rvMsg = ' ' . ozon_import_reviews(); } catch (Throwable $e) { $rvMsg = ''; setting_set('ozon_reviews_last', now()); }
     }
     page_cache_clear();
+    if ($new + $upd + $gone > 0) {
+        try { indexnow_submit(indexnow_changed_since(date('Y-m-d H:i:s', (int)$t0 - 60))); } catch (Throwable $e) {}
+    }
     $msg = sprintf('Готово за %.1f с: новых %d, обновлено %d, убрано %d. В наличии на Ozon: %d.%s%s%s', microtime(true) - $t0, $new, $upd, $gone, $inStock, $catMsg, $wbMsg, $rvMsg);
     sync_log(true, $msg);
     return $msg;

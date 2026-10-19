@@ -13,6 +13,7 @@ function mp_icon(string $mp): string
 
 function page_head(string $title, string $active = '', array $meta = []): void
 {
+    if (PHP_SAPI !== 'cli' && !empty($_SERVER['HTTP_HOST']) && !str_contains((string)$_SERVER['HTTP_HOST'], 'localhost') && !str_starts_with((string)$_SERVER['HTTP_HOST'], '127.') && setting('site_url') !== base_url()) setting_set('site_url', base_url());
     $shop = setting('shop_name');
     $accent = preg_match('/^#[0-9a-f]{6}$/i', setting('theme_accent')) ? setting('theme_accent') : '#00e5ff';
     $q = $_GET['q'] ?? '';
@@ -49,6 +50,8 @@ function page_head(string $title, string $active = '', array $meta = []): void
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css?v=<?= MB_VERSION ?>">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <style>:root{--accent:<?= $accent ?>}</style>
 <?php foreach ((array)($meta['jsonld'] ?? []) as $ld): ?>
 <script type="application/ld+json"><?= json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?></script>

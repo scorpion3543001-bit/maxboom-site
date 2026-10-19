@@ -24,6 +24,16 @@ try {
     echo 'Ошибка: ', $e->getMessage(), "\n";
 }
 flock($lock, LOCK_UN);
+// IndexNow: один раз отправляем все страницы, дальше — только изменённые (в ozon_sync)
+if (setting('indexnow_full') !== '1' && setting('indexnow_key') !== '') {
+    try {
+        $base = rtrim(base_url(), '/') . '/';
+        $all = [$base, $base . 'sitemap.xml', $base . 'contacts.php', $base . 'delivery.php'];
+        foreach (categories_visible() as $c) $all[] = $base . category_url((int)$c['id'], $c['title']);
+        foreach (db()->query('SELECT id, name FROM products WHERE ' . visible_where()) as $p) $all[] = $base . product_url($p);
+        if (indexnow_submit($all) > 0) { setting_set('indexnow_full', '1'); echo "IndexNow: отправлено " . count($all) . " адресов\n"; }
+    } catch (Throwable $e) { echo 'IndexNow: ', $e->getMessage(), "\n"; }
+}
 // Автообновление файлов сайта из GitHub
 try { $u = site_autoupdate(); if ($u !== '') echo $u, "\n"; } catch (Throwable $e) { echo 'Автообновление: ', $e->getMessage(), "\n"; }
 // Telegram без webhook: забираем сообщения покупателей боту

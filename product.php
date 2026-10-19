@@ -38,7 +38,7 @@ $crumbs = [['@type' => 'ListItem', 'position' => 1, 'name' => 'Каталог', 
 if ($ct) $crumbs[] = ['@type' => 'ListItem', 'position' => 2, 'name' => $ct, 'item' => abs_url(category_url((int)$p['type_id'], $ct))];
 $ld[] = ['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => $crumbs];
 page_head($p['name'] . ' — купить за ' . money($price) . ' | ' . setting('shop_name'), 'product', [
-    'description' => $p['name'] . '. ' . ($desc !== '' ? $desc : setting('shop_tagline')),
+    'description' => mb_strimwidth($p['name'] . ' — купить за ' . money($price) . ' у производителя MaxBoom. ' . ($desc !== '' ? preg_replace('/\s+/u', ' ', $desc) : 'Собственное производство из кукурузного пластика PLA.') . ' Доставка СДЭК, Почтой России, Ozon по всей России.', 0, 200, '…'),
     'canonical' => $canon, 'image' => $imgs[0] ?? '', 'jsonld' => $ld, 'jsonld_product' => true,
 ]);
 $low = low_stock_text($p);
@@ -128,6 +128,18 @@ $low = low_stock_text($p);
     <div class="desc-text"><?= nl2br(e($desc)) ?></div>
   </div>
   <?php endif; ?>
+  <div class="specs">
+    <h2>Характеристики</h2>
+    <dl class="req">
+      <dt>Материал</dt><dd><?= e(setting('seo_material')) ?></dd>
+      <?php if (!empty($p['color'])): ?><dt>Цвет</dt><dd><?= e((string)$p['color']) ?><?php if (($vars = variants_of($p)) && count($vars) > 1): ?> <span class="muted">(ещё <?= count($vars) - 1 ?> <?= plural(count($vars) - 1, 'цвет', 'цвета', 'цветов') ?>)</span><?php endif; ?></dd><?php endif; ?>
+      <?php if (!empty($p['weight_g'])): ?><dt>Вес</dt><dd><?= (int)$p['weight_g'] ?> г</dd><?php endif; ?>
+      <?php if ($ct): ?><dt>Категория</dt><dd><a href="<?= e(category_url((int)$p['type_id'], $ct)) ?>"><?= e($ct) ?></a></dd><?php endif; ?>
+      <dt>Артикул</dt><dd><?= e((string)$p['site_code']) ?></dd>
+      <dt>Производство</dt><dd>MaxBoom, Москва — 3D-печать</dd>
+      <dt>Доставка</dt><dd>СДЭК, Почта России, Ozon по всей России<?= (float)setting('free_delivery_from') > 0 ? '; бесплатно от ' . money((float)setting('free_delivery_from')) : '' ?></dd>
+    </dl>
+  </div>
 
   <?php foreach (bundles_on_sale((int)$p['id']) as $b): ?>
   <div class="bundle" data-bundle="<?= e(json_encode(array_map(fn($x) => ['id' => (int)$x['id'], 'name' => $x['name'], 'price' => site_price($x), 'img' => img_url(product_image($x), 200), 'code' => (string)$x['site_code']], $b['products']), JSON_UNESCAPED_UNICODE)) ?>">
@@ -197,7 +209,7 @@ $low = low_stock_text($p);
 <?php
 $rel = [];
 if (!empty($p['type_id'])) {
-    $st = db()->prepare('SELECT * FROM products WHERE type_id = ? AND id <> ? AND ' . visible_where() . ' ORDER BY RANDOM() LIMIT 8');
+    $st = db()->prepare('SELECT * FROM products WHERE type_id = ? AND id <> ? AND ' . visible_where() . ' ORDER BY ABS(id - ' . (int)$p['id'] . ') LIMIT 8');
     $st->execute([$p['type_id'], $p['id']]);
     $rel = $st->fetchAll();
 }
@@ -208,7 +220,7 @@ if (count($rel) < 4) {
 }
 if ($rel): ?>
 <section class="wrap section">
-  <div class="section-head"><h2>Вам может понравиться</h2></div>
+  <div class="section-head"><h2><?= $ct ? 'Похожие товары: ' . e($ct) : 'Вам может понравиться' ?></h2><?php if ($ct): ?><a class="more-link" href="<?= e(category_url((int)$p['type_id'], $ct)) ?>">Все <?= e(mb_strtolower($ct)) ?></a><?php endif; ?></div>
   <div class="shelf"><?php foreach ($rel as $r) echo product_card($r); ?></div>
 </section>
 <?php endif; ?>

@@ -14,7 +14,7 @@ foreach (db()->query('SELECT id, name, updated_at FROM products WHERE ' . visibl
 }
 foreach (collections_live(50) as $c) {
     if (empty($c['key'])) continue;
-    echo $u($base . '?col=' . rawurlencode((string)$c['key']), date('Y-m-d'), '0.7');
+    echo $u($base . (setting('pretty_urls') === '1' ? 'col/' . rawurlencode((string)$c['key']) : '?col=' . rawurlencode((string)$c['key'])), date('Y-m-d'), '0.7');
 }
 if (gift_on()) echo $u($base . 'gift.php', '', '0.5');
 echo $u($base . 'delivery.php', '', '0.4');

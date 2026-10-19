@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-const MB_VERSION = '1.013';
+const MB_VERSION = '1.014';
 define('MB_ROOT', dirname(__DIR__));
 define('MB_DATA', MB_ROOT . '/data');
 
@@ -242,6 +242,16 @@ function migrate(PDO $pdo): void
         $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('cdek_price', '500')");
         foreach (glob(MB_DATA . '/cache/*.html') ?: [] as $f) @unlink($f);
     }
+    $ccols = array_column($pdo->query('PRAGMA table_info(categories)')->fetchAll(), 'name');
+    if (!in_array('seo_text', $ccols, true)) $pdo->exec('ALTER TABLE categories ADD COLUMN seo_text TEXT');
+    if ($pdo->query("SELECT value FROM settings WHERE key = 'v1014_init'")->fetchColumn() !== '1') {
+        $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('v1014_init', '1')");
+        if (trim((string)$pdo->query("SELECT value FROM settings WHERE key = 'indexnow_key'")->fetchColumn()) === '') {
+            $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('indexnow_key', '" . bin2hex(random_bytes(16)) . "')");
+        }
+        $pdo->exec("DELETE FROM kv_cache WHERE key LIKE 'collections_%'");
+        foreach (glob(MB_DATA . '/cache/*.html') ?: [] as $f) @unlink($f);
+    }
 }
 
 /* ---------- Настройки ---------- */
@@ -352,6 +362,9 @@ const MB_DEFAULTS = [
     'legal_inn'          => '772377036537',
     'legal_ogrnip'       => '322774600265467',
     'legal_address'      => 'Москва, ул. Гурьянова, д. 30',
+    'indexnow_key'       => '',
+    'site_url'           => '',
+    'seo_material'       => 'кукурузный пластик PLA (биоразлагаемый, безопасный для детей и животных)',
 ];
 
 function setting(string $key): string
@@ -560,6 +573,10 @@ function csrf_check(): void
 
 function base_url(): string
 {
+    if (PHP_SAPI === 'cli' || empty($_SERVER['HTTP_HOST'])) {
+        $saved = rtrim(setting('site_url'), '/');
+        if ($saved !== '') return $saved;
+    }
     $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $dir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/')), '/');
@@ -628,6 +645,20 @@ function categories_visible(): array
             GROUP BY c.id HAVING cnt > 0
             ORDER BY c.sort ASC, cnt DESC, title ASC";
     return db()->query($sql)->fetchAll();
+}
+
+/** Текст для страницы категории: свой из админки или автоматический. */
+function category_seo_text(int $id, string $title, int $total): string
+{
+    $st = db()->prepare('SELECT seo_text FROM categories WHERE id = ?');
+    $st->execute([$id]);
+    $own = trim((string)$st->fetchColumn());
+    if ($own !== '') return $own;
+    $n = $total . ' ' . plural($total, 'товар', 'товара', 'товаров');
+    $free = (float)setting('free_delivery_from');
+    return "{$title} от MaxBoom — {$n} собственного производства. Печатаем на 3D-принтерах из материала: " . setting('seo_material') . ". "
+         . "Каждое изделие можно заказать в разных цветах. Доставка по всей России: СДЭК, Почта России, Ozon" . ($free > 0 ? ', бесплатно от ' . money($free) : '') . ". "
+         . "Те же товары есть на Ozon, Wildberries и Яндекс Маркете, но на сайте дешевле.";
 }
 
 function category_title(int $id): string

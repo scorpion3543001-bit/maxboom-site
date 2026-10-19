@@ -906,3 +906,14 @@ button.link{background:none;border:0;padding:0;color:var(--accent);font-weight:7
 /* v1.012 Ozon ПВЗ */
 .ozon-row{display:flex;gap:8px;align-items:center}.ozon-row input{flex:1;min-width:0}.ozon-row .btn{white-space:nowrap;height:44px}
 @media (max-width:600px){.ozon-row{flex-wrap:wrap}.ozon-row .btn{width:100%}}
+/* v1.014 SEO */
+.seo-text{margin:8px auto 40px;color:#b9c9da;line-height:1.7;max-width:900px;font-size:15px}
+.cat-h1{font:800 clamp(22px,2.6vw,30px) var(--head);margin:0}
+.about{padding:10px 0 50px}.about h2{font:800 clamp(22px,2.6vw,30px) var(--head);margin:0 0 16px}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;color:#c9d8e8;line-height:1.75;margin-bottom:22px}
+.faq details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:8px;background:var(--panel)}
+.faq summary{cursor:pointer;font-weight:700;list-style:none}.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:'+';display:inline-block;width:20px;color:var(--accent);font-weight:800}.faq details[open] summary::before{content:'–'}
+.faq p{margin:10px 0 0 20px;color:#b9c9da;line-height:1.7}
+.specs{margin-top:28px}.specs h2{font:700 22px var(--head);margin:0 0 12px}
+@media (max-width:700px){.about-grid{grid-template-columns:1fr}}

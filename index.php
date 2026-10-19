@@ -17,15 +17,19 @@ $page = max(1, (int)($_GET['page'] ?? 1));
 [$items, $total] = catalog_query($q, $sort, $page, CATALOG_PER_PAGE, $cat);
 $perPage = CATALOG_PER_PAGE;
 $catTitle = $cat ? category_title($cat) : '';
+if ($cat && $catTitle === '') { http_response_code(404); $cat = 0; }
 $isHome = $q === '' && $cat === 0 && $page === 1;
 $cats = categories_visible();
 
-$title = $colTitle !== '' ? $colTitle . ' — ' . setting('shop_name') : ($q !== '' ? "Поиск «{$q}» — " . setting('shop_name')
-       : ($catTitle !== '' ? $catTitle . ' — купить в интернет-магазине ' . setting('shop_name') : (setting('seo_title') ?: setting('shop_name') . (setting('shop_alt_name') !== '' ? ' (' . setting('shop_alt_name') . ')' : '') . ' — ' . setting('shop_tagline'))));
+$title = $colTitle !== '' ? $colTitle . ' — купить в ' . setting('shop_name') . ($colKey !== '' ? ', ' . $total . ' ' . plural($total, 'товар', 'товара', 'товаров') : '') : ($q !== '' ? "Поиск «{$q}» — " . setting('shop_name')
+       : ($catTitle !== '' ? $catTitle . ' из кукурузного пластика — купить, ' . $total . ' ' . plural($total, 'товар', 'товара', 'товаров') . ' | ' . setting('shop_name') : (setting('seo_title') ?: setting('shop_name') . (setting('shop_alt_name') !== '' ? ' (' . setting('shop_alt_name') . ')' : '') . ' — ' . setting('shop_tagline'))));
 $meta = ['noindex' => ($q !== '' && $colKey === '') || $page > 1 || isset($_GET['sort'])];
 if ($cat && $catTitle !== '') {
     $meta['canonical'] = abs_url(category_url($cat, $catTitle));
     $meta['description'] = $catTitle . ': ' . $total . ' ' . plural($total, 'товар', 'товара', 'товаров') . ' собственного производства из безопасного кукурузного пластика. Доставка СДЭК, Ozon, Почтой России.';
+} elseif ($colKey !== '') {
+    $meta['canonical'] = abs_url(setting('pretty_urls') === '1' ? 'col/' . $colKey : '?col=' . $colKey);
+    $meta['description'] = $colTitle . ': ' . $total . ' ' . plural($total, 'товар', 'товара', 'товаров') . ' собственного производства MaxBoom из кукурузного пластика. ' . (string)($cd['text'] ?? '') . ' Доставка по России, бесплатно от ' . money((float)setting('free_delivery_from')) . '.';
 } elseif ($isHome) {
     $meta['canonical'] = abs_url('');
     $alt = setting('shop_alt_name');
@@ -34,11 +38,13 @@ if ($cat && $catTitle !== '') {
     if (setting('seo_description') === '') {
         $meta['description'] = setting('shop_name') . ($alt !== '' ? ' (' . $alt . ')' : '') . ' — собственное производство из безопасного кукурузного пластика: брелоки, фигурки, кашпо, органайзеры и подарки. Доставка СДЭК, Ozon, Почтой России.';
     }
+    $faq = home_faq();
     $meta['jsonld'] = [
+        ['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => array_map(fn($f) => ['@type' => 'Question', 'name' => $f[0], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f[1]]], $faq)],
         ['@context' => 'https://schema.org', '@type' => 'WebSite', 'name' => setting('shop_name'), 'alternateName' => $names, 'url' => abs_url(''),
          'inLanguage' => 'ru', 'potentialAction' => ['@type' => 'SearchAction', 'target' => abs_url('') . '?q={search_term_string}', 'query-input' => 'required name=search_term_string']],
         ['@context' => 'https://schema.org', '@type' => 'Organization', 'name' => setting('shop_name'), 'alternateName' => $names, 'url' => abs_url(''),
-         'logo' => abs_url('assets/favicon.svg'), 'sameAs' => $sameAs]
+         'logo' => abs_url('assets/icon-512.png'), 'sameAs' => $sameAs]
             + (setting('phone') ? ['telephone' => setting('phone')] : []),
     ];
 }
@@ -202,7 +208,7 @@ foreach (array_slice(array_values(array_filter($cats, fn($c) => (int)$c['cnt'] >
 
 <section class="wrap section catalog" id="catalog">
   <div class="section-head">
-    <h2><?= $colTitle !== '' ? e($colTitle) : ($q !== '' ? 'Поиск: «' . e($q) . '»' : ($catTitle !== '' ? e($catTitle) : 'Весь каталог')) ?> <small><?= $total ?></small></h2>
+    <?php if ($isHome): ?><h2>Весь каталог <small><?= $total ?></small></h2><?php else: ?><h1 class="cat-h1"><?= $colTitle !== '' ? e($colTitle) : ($q !== '' ? 'Поиск: «' . e($q) . '»' : e($catTitle)) ?> <small><?= $total ?></small></h1><?php endif; ?>
     <div class="sort">
       <?php foreach (['new' => 'Новинки', 'cheap' => 'Сначала дешевле', 'expensive' => 'Сначала дороже'] + (sale_active() ? ['discount' => 'Со скидкой'] : []) as $k => $t): ?>
         <a class="chip<?= $sort === $k ? ' is-active' : '' ?>" href="?<?= e(http_build_query(array_filter($linkQ + ['cat' => $cat ?: null, 'sort' => $k]))) ?>#catalog"><?= $t ?></a>
@@ -226,6 +232,24 @@ foreach (array_slice(array_values(array_filter($cats, fn($c) => (int)$c['cnt'] >
     <?php endif; ?>
   <?php endif; ?>
 </section>
+<?php if ($catTitle !== '' && $page === 1 && $q === ''): ?>
+<section class="wrap seo-text"><p><?= nl2br(e(category_seo_text($cat, $catTitle, $total))) ?></p></section>
+<?php elseif ($colKey !== '' && $page === 1): ?>
+<section class="wrap seo-text"><p><?= e($colTitle) ?> — подборка из <?= $total ?> <?= plural($total, 'товара', 'товаров', 'товаров') ?> MaxBoom. <?= e((string)($cd['text'] ?? '')) ?> Всё напечатано на собственном производстве из материала: <?= e(setting('seo_material')) ?>. Доставка СДЭК, Почтой России и Ozon по всей России<?= (float)setting('free_delivery_from') > 0 ? ', бесплатно от ' . money((float)setting('free_delivery_from')) : '' ?>.</p></section>
+<?php elseif ($isHome): ?>
+<section class="wrap about" id="about">
+  <h2>О производстве MaxBoom</h2>
+  <div class="about-grid">
+    <p>MaxBoom (Максбум) — собственное производство в Москве. Мы печатаем брелоки, фигурки, кашпо, органайзеры, подставки, держатели и подарки на 3D-принтерах из кукурузного пластика PLA: он биоразлагаемый, без запаха и безопасен для детей и животных. Каждая модель доступна в нескольких цветах, многие — в наборах.</p>
+    <p>Все товары, которые вы видите на Ozon, Wildberries и Яндекс Маркете, здесь можно купить напрямую у производителя дешевле — без комиссии площадок. Отправляем по всей России СДЭК, Почтой России и Ozon Доставкой<?= (float)setting('free_delivery_from') > 0 ? ', при заказе от ' . money((float)setting('free_delivery_from')) . ' доставка бесплатная' : '' ?>. Оплата картой или СБП, чек приходит на e-mail.</p>
+  </div>
+  <div class="faq">
+    <?php foreach (home_faq() as [$qq, $aa]): ?>
+    <details><summary><?= e($qq) ?></summary><p><?= e($aa) ?></p></details>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>
 </div>
 </div>
 <?php page_foot();

@@ -233,7 +233,7 @@ function collections_live(int $n = 7): array
 function collection_url(array $c): string
 {
     if (!empty($c['cat'])) return category_url((int)$c['cat'], (string)$c['title']);
-    if (!empty($c['key'])) return './?col=' . rawurlencode($c['key']) . '#catalog';
+    if (!empty($c['key'])) return (setting('pretty_urls') === '1' ? 'col/' . rawurlencode($c['key']) : './?col=' . rawurlencode($c['key'])) . '#catalog';
     return './?' . http_build_query(['q' => $c['q'], 't' => $c['title']]) . '#catalog';
 }
 
