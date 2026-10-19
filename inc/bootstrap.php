@@ -221,6 +221,9 @@ function migrate(PDO $pdo): void
         if (trim((string)$pdo->query("SELECT value FROM settings WHERE key = 'phone'")->fetchColumn()) === '') {
             $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('phone', '+7 936 251-79-85')");
         }
+        if (trim((string)$pdo->query("SELECT value FROM settings WHERE key = 'email'")->fetchColumn()) === '') {
+            $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('email', 'Maxboomofficial@yandex.ru')");
+        }
         foreach (glob(MB_DATA . '/cache/*.html') ?: [] as $f) @unlink($f);
     }
 }
