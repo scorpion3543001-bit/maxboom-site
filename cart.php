@@ -72,6 +72,19 @@ page_head('Корзина — ' . setting('shop_name'), 'cart', ['noindex' => tr
         <div class="pvz-chosen" id="pvzChosen" hidden></div>
       </div>
       <?php endif; ?>
+      <?php if (isset($methods['ozon']) && setting('yandex_maps_key') !== ''): ?>
+      <div class="dlv-api" id="ozonBox" hidden>
+        <div class="fields">
+          <label class="full city-pick">Город или район<span class="ozon-row"><input id="ozonCity" autocomplete="off" placeholder="Например: Москва, Печатники"><button type="button" class="btn btn-sm" id="ozonFind">Показать пункты</button></span></label>
+        </div>
+        <div class="pvz-wrap" id="ozonWrap" hidden>
+          <div class="pvz-map" id="ozonMap" data-key="<?= e(setting('yandex_maps_key')) ?>"></div>
+          <div class="pvz-list" id="ozonList" role="listbox" aria-label="Пункты выдачи Ozon"></div>
+        </div>
+        <div class="pvz-chosen" id="ozonChosen" hidden></div>
+        <p class="muted tiny">Пункты выдачи Ozon показаны по данным Яндекс Карт. Если нужного нет на карте — просто впишите его адрес ниже.</p>
+      </div>
+      <?php endif; ?>
       <?php if ($postApi): ?>
       <div class="dlv-api" id="postBox" hidden>
         <div class="fields"><label>Почтовый индекс<input name="post_index" inputmode="numeric" maxlength="6" pattern="\d{6}" placeholder="101000" value="<?= e((string)($old['post_index'] ?? '')) ?>"></label><p class="muted tiny dlv-eta" id="postEta"></p></div>

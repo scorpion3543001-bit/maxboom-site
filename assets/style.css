@@ -903,3 +903,6 @@ button.link{background:none;border:0;padding:0;color:var(--accent);font-weight:7
 .small{font-size:13px;line-height:1.6;max-width:720px}
 .contacts-page .info-card a{color:inherit}
 @media (max-width:600px){.req{grid-template-columns:1fr;gap:2px}.req dt{margin-top:10px;font-size:12px}}
+/* v1.012 Ozon ПВЗ */
+.ozon-row{display:flex;gap:8px;align-items:center}.ozon-row input{flex:1;min-width:0}.ozon-row .btn{white-space:nowrap;height:44px}
+@media (max-width:600px){.ozon-row{flex-wrap:wrap}.ozon-row .btn{width:100%}}

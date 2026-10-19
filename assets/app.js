@@ -499,6 +499,57 @@
     const pi = form.elements.post_index;
     if (pi) pi.addEventListener('input', () => { if (pi.value.replace(/\D/g, '').length === 6) requoteSoon(); });
 
+    /* --- Ozon: пункты выдачи с Яндекс Карт --- */
+    const ozonCity = $('#ozonCity');
+    if (ozonCity) {
+      const mapEl = $('#ozonMap'), list = $('#ozonList'), wrap = $('#ozonWrap'), chosen = $('#ozonChosen');
+      let omap = null, ocol = null, found = [];
+      const loadYm = () => new Promise(res => {
+        if (window.ymaps) return ymaps.ready(res);
+        const sc = document.createElement('script');
+        sc.src = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=' + encodeURIComponent(mapEl.dataset.key);
+        sc.onload = () => ymaps.ready(res); document.head.appendChild(sc);
+      });
+      const pick = i => {
+        const p = found[i]; if (!p) return;
+        form.elements.address.value = 'ПВЗ Ozon: ' + p.addr + (p.name && !p.addr.includes(p.name) ? ' (' + p.name + ')' : '');
+        chosen.innerHTML = `<span>Пункт выдачи Ozon: <b>${esc(p.addr)}</b><small class="muted">${esc(p.hours || '')}</small></span><button type="button" class="link" id="ozonChange">Изменить</button>`;
+        chosen.hidden = false; wrap.hidden = true;
+        form.elements.address.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      chosen.addEventListener('click', e => { if (e.target.id === 'ozonChange') { wrap.hidden = false; chosen.hidden = true; } });
+      list.addEventListener('click', e => { const b = e.target.closest('.pvz'); if (b) pick(+b.dataset.i); });
+      async function findOzon() {
+        const q = ozonCity.value.trim(); if (q.length < 2) { toast('Укажите город', true); return; }
+        wrap.hidden = false; chosen.hidden = true;
+        list.innerHTML = '<p class="muted tiny">Ищем пункты выдачи Ozon…</p>';
+        try {
+          await loadYm();
+          const geo = await ymaps.geocode(q, { results: 1 });
+          const g = geo.geoObjects.get(0); if (!g) { list.innerHTML = '<p class="muted tiny">Место не найдено.</p>'; return; }
+          const bounds = g.properties.get('boundedBy');
+          if (!omap) omap = new ymaps.Map(mapEl, { center: g.geometry.getCoordinates(), zoom: 12, controls: ['zoomControl'] });
+          omap.setBounds(bounds, { checkZoomRange: true });
+          const res = await ymaps.search('Ozon пункт выдачи', { boundedBy: bounds, strictBounds: true, results: 50 });
+          found = [];
+          if (ocol) omap.geoObjects.remove(ocol);
+          ocol = new ymaps.Clusterer({ preset: 'islands#invertedBlueClusterIcons' });
+          res.geoObjects.each(o => {
+            const name = o.properties.get('name') || '', addr = o.properties.get('address') || o.properties.get('description') || '';
+            if (!/ozon|озон/i.test(name + addr)) return;
+            const i = found.push({ name, addr: addr || name, hours: o.properties.get('CompanyMetaData.Hours.text') || '', coords: o.geometry.getCoordinates() }) - 1;
+            const pm = new ymaps.Placemark(found[i].coords, { hintContent: found[i].addr }, { preset: 'islands#blueDotIcon' });
+            pm.events.add('click', () => pick(i)); ocol.add(pm);
+          });
+          omap.geoObjects.add(ocol);
+          if (found.length) omap.setBounds(ocol.getBounds(), { checkZoomRange: true, zoomMargin: 30 });
+          list.innerHTML = found.length ? found.map((p, i) => `<button type="button" class="pvz" data-i="${i}"><b>${esc(p.addr)}</b><small>${esc(p.hours || p.name)}</small></button>`).join('') : '<p class="muted tiny">Пункты Ozon рядом не найдены — впишите адрес пункта вручную ниже.</p>';
+        } catch (e) { list.innerHTML = '<p class="muted tiny">Карта недоступна — впишите адрес пункта вручную ниже.</p>'; }
+      }
+      $('#ozonFind').addEventListener('click', findOzon);
+      ozonCity.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); findOzon(); } });
+    }
+
     /* --- СДЭК: город → пункт выдачи --- */
     const cityIn = $('#cdekCity');
     if (cityIn) {
@@ -619,6 +670,7 @@
       const api = dlv ? dlv.dataset.api : '';
       if ($('#cdekBox')) $('#cdekBox').hidden = api !== 'cdek';
       if ($('#postBox')) $('#postBox').hidden = api !== 'post';
+      if ($('#ozonBox')) $('#ozonBox').hidden = !(dlv && dlv.value === 'ozon');
       if ($('#addrLabel')) $('#addrLabel').textContent = api === 'post' ? 'Адрес: город, улица, дом, квартира' : 'Город и адрес пункта выдачи / отделения';
       const fb = $('#freeBar');
       if (fb && cfg.freeFrom > 0) {
