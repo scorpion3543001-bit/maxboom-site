@@ -186,6 +186,7 @@ function page_foot(): void
     </div>
     <div>
       <h4>Контакты</h4>
+      <a href="contacts.php">Контакты и реквизиты</a>
       <?php if ($phone): ?><a href="tel:<?= e(preg_replace('/[^\d+]/', '', $phone)) ?>"><?= e($phone) ?></a><?php endif; ?>
       <?php if (setting('email')): ?><a href="mailto:<?= e(setting('email')) ?>"><?= e(setting('email')) ?></a><?php endif; ?>
       <?php if (setting('telegram_contact')): ?><a href="https://t.me/<?= e(ltrim(setting('telegram_contact'), '@')) ?>" target="_blank" rel="noopener">Telegram <?= e(setting('telegram_contact')) ?></a><?php endif; ?>
@@ -199,7 +200,8 @@ function page_foot(): void
       </div>
     </div>
   </div>
-  <div class="wrap footer-bottom muted">© <?= date('Y') ?> <?= e($shop) ?><?php if (setting('shop_alt_name') !== ''): ?> (<?= e(setting('shop_alt_name')) ?>)<?php endif; ?></div>
+  <div class="wrap footer-bottom muted">© <?= date('Y') ?> <?= e($shop) ?><?php if (setting('shop_alt_name') !== ''): ?> (<?= e(setting('shop_alt_name')) ?>)<?php endif; ?>
+    <?php if (setting('legal_name') !== ''): ?><span class="legal"><?= e(setting('legal_name')) ?><?= setting('legal_ogrnip') ? ' · ОГРНИП ' . e(setting('legal_ogrnip')) : '' ?><?= setting('legal_inn') ? ' · ИНН ' . e(setting('legal_inn')) : '' ?><?= setting('legal_address') ? ' · ' . e(setting('legal_address')) : '' ?></span><?php endif; ?></div>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="assets/app.js?v=<?= MB_VERSION ?>"></script>

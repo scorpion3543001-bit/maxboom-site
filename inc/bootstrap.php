@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-const MB_VERSION = '1.008';
+const MB_VERSION = '1.009';
 define('MB_ROOT', dirname(__DIR__));
 define('MB_DATA', MB_ROOT . '/data');
 
@@ -322,6 +322,10 @@ const MB_DEFAULTS = [
     'shop_alt_name'      => 'Максбум',
     'google_verify'      => '',
     'yandex_verify'      => '',
+    'legal_name'         => 'Индивидуальный предприниматель Охапкин Антон Игоревич',
+    'legal_inn'          => '772377036537',
+    'legal_ogrnip'       => '322774600265467',
+    'legal_address'      => 'Москва, ул. Гурьянова, д. 30',
 ];
 
 function setting(string $key): string

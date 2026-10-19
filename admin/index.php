@@ -1130,7 +1130,8 @@ function page_settings(bool $saved): void
         <div class="grid2">
           <?php fld('shop_name', 'Название'); fld('shop_tagline', 'Подзаголовок');
           fld('ticker', 'Бегущая строка', 'фразы через «·»');
-          fld('phone', 'Телефон'); fld('email', 'E-mail для покупателей', '', 'email'); fld('telegram_contact', 'Telegram', 'например @maxboom'); ?>
+          fld('phone', 'Телефон'); fld('email', 'E-mail для покупателей', '', 'email'); fld('telegram_contact', 'Telegram', 'например @maxboom');
+          fld('legal_name', 'Продавец (ИП / ООО)', 'показывается в подвале и на странице «Контакты»'); fld('legal_ogrnip', 'ОГРНИП / ОГРН'); fld('legal_inn', 'ИНН'); fld('legal_address', 'Адрес'); ?>
           <label>Акцентный цвет<input type="color" name="theme_accent" value="<?= e(setting('theme_accent')) ?>"></label>
         </div>
       </section>

@@ -896,3 +896,10 @@ button.link{background:none;border:0;padding:0;color:var(--accent);font-weight:7
 .bn-garland{position:absolute;left:0;right:0;top:0;height:34px;z-index:2;pointer-events:none;background:radial-gradient(circle at 12px 18px,#ff4d6d 0 5px,transparent 6px) 0 0/48px 34px,radial-gradient(circle at 36px 22px,#ffd76a 0 5px,transparent 6px) 0 0/48px 34px,radial-gradient(circle at 24px 8px,#5ee6ff 0 4px,transparent 5px) 0 0/48px 34px;filter:drop-shadow(0 0 6px rgba(255,215,106,.8));animation:garland 1.6s steps(2) infinite}
 @keyframes garland{50%{filter:drop-shadow(0 0 2px rgba(255,215,106,.3)) brightness(.75)}}
 .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* v1.009 контакты */
+.footer-bottom .legal{display:block;margin-top:6px;font-size:12px;opacity:.75}
+.req{display:grid;grid-template-columns:max-content 1fr;gap:8px 20px;max-width:720px;margin:0 0 18px}
+.req dt{color:var(--muted,#8da2b8)}.req dd{margin:0;color:#e6eef7}
+.small{font-size:13px;line-height:1.6;max-width:720px}
+.contacts-page .info-card a{color:inherit}
+@media (max-width:600px){.req{grid-template-columns:1fr;gap:2px}.req dt{margin-top:10px;font-size:12px}}
