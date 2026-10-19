@@ -216,6 +216,13 @@ function migrate(PDO $pdo): void
         $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('ozon_reviews_last', '')");
         $pdo->exec("DELETE FROM kv_cache WHERE key LIKE 'collections_%'");
     }
+    if ($pdo->query("SELECT value FROM settings WHERE key = 'v1009_init'")->fetchColumn() !== '1') {
+        $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('v1009_init', '1')");
+        if (trim((string)$pdo->query("SELECT value FROM settings WHERE key = 'phone'")->fetchColumn()) === '') {
+            $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('phone', '+7 936 251-79-85')");
+        }
+        foreach (glob(MB_DATA . '/cache/*.html') ?: [] as $f) @unlink($f);
+    }
 }
 
 /* ---------- Настройки ---------- */
