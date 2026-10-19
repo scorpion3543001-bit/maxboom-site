@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-const MB_VERSION = '1.010';
+const MB_VERSION = '1.011';
 define('MB_ROOT', dirname(__DIR__));
 define('MB_DATA', MB_ROOT . '/data');
 
@@ -223,6 +223,17 @@ function migrate(PDO $pdo): void
         }
         if (trim((string)$pdo->query("SELECT value FROM settings WHERE key = 'email'")->fetchColumn()) === '') {
             $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('email', 'Maxboomofficial@yandex.ru')");
+        }
+        foreach (glob(MB_DATA . '/cache/*.html') ?: [] as $f) @unlink($f);
+    }
+    if ($pdo->query("SELECT value FROM settings WHERE key = 'v1010_init'")->fetchColumn() !== '1') {
+        $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('v1010_init', '1')");
+        // бесплатная доставка от 5000 ₽, расчёт СДЭК и Почты по тарифу
+        $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('free_delivery_from', '5000')");
+        $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('post_api', '1')");
+        $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('cdek_api', '1')");
+        if (trim((string)$pdo->query("SELECT value FROM settings WHERE key = 'post_from_index'")->fetchColumn()) === '') {
+            $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('post_from_index', '109388')");
         }
         foreach (glob(MB_DATA . '/cache/*.html') ?: [] as $f) @unlink($f);
     }
