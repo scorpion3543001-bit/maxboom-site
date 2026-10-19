@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-const MB_VERSION = '1.009';
+const MB_VERSION = '1.010';
 define('MB_ROOT', dirname(__DIR__));
 define('MB_DATA', MB_ROOT . '/data');
 
