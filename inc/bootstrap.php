@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-const MB_VERSION = '1.012';
+const MB_VERSION = '1.013';
 define('MB_ROOT', dirname(__DIR__));
 define('MB_DATA', MB_ROOT . '/data');
 
@@ -237,6 +237,11 @@ function migrate(PDO $pdo): void
         }
         foreach (glob(MB_DATA . '/cache/*.html') ?: [] as $f) @unlink($f);
     }
+    if ($pdo->query("SELECT value FROM settings WHERE key = 'v1013_init'")->fetchColumn() !== '1') {
+        $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('v1013_init', '1')");
+        $pdo->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('cdek_price', '500')");
+        foreach (glob(MB_DATA . '/cache/*.html') ?: [] as $f) @unlink($f);
+    }
 }
 
 /* ---------- Настройки ---------- */
@@ -268,7 +273,7 @@ const MB_DEFAULTS = [
     'pickup_hours'       => 'Пн–Пт 10:00–19:00',
     'pickup_pay_on_site' => '1',          // при самовывозе можно оплатить на месте
     'cdek_enabled'       => '1',
-    'cdek_price'         => '350',
+    'cdek_price'         => '500',
     'ozon_dlv_enabled'   => '1',
     'ozon_dlv_price'     => '250',
     'post_enabled'       => '1',
